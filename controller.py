@@ -25,10 +25,11 @@ def send_cmd():
         send_state()
         time.sleep(0.1)
 
+speed = 0.9
 def send_state():
     cmd = {
-        "fwd": (1 if state["Up"] else 0) + (-1 if state["Down"] else 0),
-        "ccw": (1 if state["Right"] else 0) + (-1 if state["Left"] else 0)
+        "fwd": 0.01 + (-speed if state["Up"] else 0) + (speed if state["Down"] else 0),
+        "ccw": 0.0 + (speed if state["Right"] else 0) + (-speed if state["Left"] else 0)
     }
     data = (json.dumps(cmd)+"\n").encode("ascii")
 
