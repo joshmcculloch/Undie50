@@ -126,41 +126,42 @@ class Connectivity(object):
         return self.recv_dgram()
         
 
+
+def main():
+
+    conn = Connectivity('2nd one', 'IthinkNegarknowsit')
+    #conn = Connectivity('3d47', 'canterbury')
+
+    conn.connect()
+    m = Motors()
+    print(conn.wlan.ifconfig())
+
+    for i in range(100,3000,100):
+        m.tone(i)
+        time.sleep(0.04)
+    m.stop()
+
+    m.set_freq(100)
         
+    connected = True
+    last_msg = time.time()
+    while connected:
+        if conn.run():
+            last_msg = time.time()
+        elif (time.time() - last_msg) > 2:
+            connected = False
+            print()
+            
+        if "fwd" in conn.req_state and "ccw" in conn.req_state:
+            m.cmd(conn.req_state["fwd"], conn.req_state["ccw"])
 
-#conn = Connectivity('2nd one', 'IthinkNegarknowsit')
-conn = Connectivity('3d47', 'canterbury')
+    m.stop()
 
-conn.connect()
-m = Motors()
-print(conn.wlan.ifconfig())
+    for i in range(3000,100,-100):
+        m.tone(i)
+        time.sleep(0.04)
 
-for i in range(100,3000,100):
-    m.tone(i)
-    time.sleep(0.04)
-m.stop()
+    m.stop()
 
-m.set_freq(100)
-    
-connected = True
-last_msg = time.time()
-while connected:
-    if conn.run():
-        last_msg = time.time()
-    elif (time.time() - last_msg) > 2:
-        connected = False
-        print()
-        
-    if "fwd" in conn.req_state and "ccw" in conn.req_state:
-        m.cmd(conn.req_state["fwd"], conn.req_state["ccw"])
-
-m.stop()
-
-for i in range(3000,100,-100):
-    m.tone(i)
-    time.sleep(0.04)
-
-m.stop()
-
-reset()
+    reset()
 
