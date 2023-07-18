@@ -1,0 +1,9 @@
+{
+    "networks": {
+        "SSID": "PASSWORD"
+    },
+    "server": {
+        "host": "example.com",
+        "port": 10000
+    }
+}

@@ -3,6 +3,7 @@ import time
 import socket
 import network
 import json
+from settings import Settings
 
 class Motors(object):
     
@@ -57,27 +58,35 @@ class Motors(object):
         
 class Connectivity(object):
     
-    def __init__(self, ssid, password):
+    def __init__(self, settings):
+        self.settings = settings
         self.wlan = network.WLAN(network.STA_IF)
         self.wlan.active(True)
-        self.ssid = ssid
-        self.password = password
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.settimeout(0.01)
         self.req_state = {}
-        self.sockaddr = (0,0)
+        self.server_addr = (0,0)
         self.last_keepalive = 0
         
         
-        
     def connect(self):
-        self.wlan.connect(self.ssid, self.password)
+        aps = self.wlan.scan()
+        aps = sorted(aps, key=lambda x: x[3], reverse=True) # sort by rssi
+
+        for ap in aps:
+            ssid = ap[0].decode("ascii")
+            if ssid in self.settings.networks.keys():
+                password = self.settings.networks[ssid]
+                print(f"Connecting to {ssid}:{password}")
+                self.wlan.connect(ssid, password)
+                break
+
         while not self.wlan_connected: #self.wlan.isconnected() and self.wlan.status() >= 0:
             print("Waiting to connect:")
             time.sleep(1)
             
-        self.sockaddr = socket.getaddrinfo('autonabit.nz', 10000)[0][-1]
-        print(self.sockaddr)
+        self.server_addr = socket.getaddrinfo(self.settings.server["host"], self.settings.server["port"])[0][-1]
+        print(self.server_addr)
         self.keep_alive()
         
         
@@ -87,7 +96,7 @@ class Connectivity(object):
             self.last_keepalive = time.ticks_ms()
         
     def send(self, data):
-        self.socket.sendto(data, self.sockaddr)
+        self.socket.sendto(data, self.server_addr)
         
     @property
     def wlan_connected(self):
@@ -126,11 +135,11 @@ class Connectivity(object):
         return self.recv_dgram()
         
 
-
 def main():
 
-    conn = Connectivity('2nd one', 'IthinkNegarknowsit')
-    #conn = Connectivity('3d47', 'canterbury')
+    settings = Settings()
+
+    conn = Connectivity(settings)
 
     conn.connect()
     m = Motors()
